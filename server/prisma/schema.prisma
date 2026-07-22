@@ -1,0 +1,153 @@
+// Prisma schema for the Library Management System.
+// See CLAUDE.md (git-ignored, local only) for the business rules that govern
+// how these models are used — this file only defines shape and constraints.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  LIBRARIAN
+  STUDENT
+}
+
+enum CopyStatus {
+  AVAILABLE
+  ISSUED
+  LOST
+  DAMAGED
+}
+
+enum RentalStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+}
+
+enum ReservationStatus {
+  WAITING
+  READY
+  FULFILLED
+  EXPIRED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role
+  enrollmentNo  String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  // Rentals where this user is the borrowing student.
+  rentalsAsStudent   Rental[] @relation("RentalStudent")
+  // Rentals where this user (a librarian) performed the issue.
+  rentalsIssuedBy    Rental[] @relation("RentalIssuedBy")
+  reservations       Reservation[]
+  activityLogs       ActivityLog[]
+
+  @@index([role])
+}
+
+model Book {
+  id        String   @id @default(cuid())
+  isbn      String   @unique
+  title     String
+  author    String
+  publisher String
+  category  String
+  year      Int
+  createdAt DateTime @default(now())
+
+  copies       BookCopy[]
+  reservations Reservation[]
+
+  @@index([title])
+  @@index([author])
+  @@index([category])
+}
+
+model BookCopy {
+  id      String     @id @default(cuid())
+  bookId  String
+  barcode String     @unique
+  status  CopyStatus @default(AVAILABLE)
+
+  book    Book     @relation(fields: [bookId], references: [id])
+  rentals Rental[]
+
+  @@index([bookId])
+  @@index([status])
+}
+
+model Rental {
+  id             String       @id @default(cuid())
+  copyId         String
+  studentId      String
+  issuedById     String
+  issueDate      DateTime     @default(now())
+  dueDate        DateTime
+  returnDate     DateTime?
+  renewalsCount  Int          @default(0)
+  status         RentalStatus @default(ACTIVE)
+
+  copy     BookCopy @relation(fields: [copyId], references: [id])
+  student  User     @relation("RentalStudent", fields: [studentId], references: [id])
+  issuedBy User     @relation("RentalIssuedBy", fields: [issuedById], references: [id])
+  fine     Fine?
+
+  @@index([studentId])
+  @@index([copyId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Fine {
+  id        String    @id @default(cuid())
+  rentalId  String    @unique
+  amount    Int
+  isPaid    Boolean   @default(false)
+  paidAt    DateTime?
+
+  rental Rental @relation(fields: [rentalId], references: [id])
+
+  @@index([isPaid])
+}
+
+model Reservation {
+  id        String            @id @default(cuid())
+  bookId    String
+  studentId String
+  status    ReservationStatus @default(WAITING)
+  expiresAt DateTime?
+  createdAt DateTime          @default(now())
+
+  book    Book @relation(fields: [bookId], references: [id])
+  student User @relation(fields: [studentId], references: [id])
+
+  @@index([bookId])
+  @@index([studentId])
+  @@index([status])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  createdAt  DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
