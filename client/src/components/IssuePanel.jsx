@@ -106,15 +106,18 @@ export default function IssuePanel({ onIssued }) {
                 </button>
               </form>
               {students.length > 0 && (
-                <ul className="mt-2 max-h-40 overflow-y-auto divide-y divide-gray-100 border border-gray-100 rounded-md">
+                <ul className="mt-2 max-h-40 overflow-y-auto divide-y divide-gray-100 border border-gray-200 rounded-md">
                   {students.map((s) => (
                     <li key={s.id}>
                       <button
                         onClick={() => setSelectedStudent(s)}
                         disabled={!s.isActive}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-between text-left px-3 py-2 text-sm hover:bg-indigo-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                       >
-                        {s.name} ({s.email}){!s.isActive && ' — deactivated'}
+                        <span>
+                          {s.name} ({s.email}){!s.isActive && ' — deactivated'}
+                        </span>
+                        {s.isActive && <span className="text-indigo-600 font-medium shrink-0 ml-2">Select →</span>}
                       </button>
                     </li>
                   ))}
