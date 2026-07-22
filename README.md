@@ -98,15 +98,18 @@ disabling a button is only ever a hint.
 - Issuing and returning are librarian-only actions (a physical handover
   needs a librarian to confirm it); renewing and reserving are
   student-initiated.
-- Public self-registration only ever creates `STUDENT` accounts — there is no
-  API path that lets a visitor grant themselves librarian privileges.
-  Librarian accounts exist only via the seed script.
+- Public self-registration (`/register`) only ever creates `STUDENT`
+  accounts. Librarian self-signup is a separate page/endpoint
+  (`/register-librarian`) gated by a shared secret, `LIBRARIAN_SIGNUP_KEY`,
+  checked server-side only — it's never sent to the browser and must be
+  set in `server/.env` (see `.env.example`) for librarian signup to work at
+  all. Share that key out-of-band with actual library staff only.
 
 ## API
 
 REST endpoints under `/api`, grouped by domain:
 
-- `auth` — register (student self-signup), login, logout, me
+- `auth` — register (student self-signup), register-librarian (key-gated), login, logout, me
 - `books`, `copies` — librarian-only CRUD, including marking a copy lost/damaged
 - `catalogue` — search by title/author/ISBN/category (both roles)
 - `rentals` — issue, barcode lookup + return (librarian); renew, my-rentals, history (student); overdue report + CSV export (librarian)

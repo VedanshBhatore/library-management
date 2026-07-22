@@ -30,13 +30,22 @@ export function AuthProvider({ children }) {
     return user;
   }, []);
 
+  // Librarian self-signup requires the shared LIBRARIAN_SIGNUP_KEY the
+  // server checks — see server/src/routes/auth.routes.js. The key is only
+  // ever sent in this one request, never stored or logged client-side.
+  const registerLibrarian = useCallback(async ({ name, email, password, key }) => {
+    const { user } = await api.post('/auth/register-librarian', { name, email, password, key });
+    setUser(user);
+    return user;
+  }, []);
+
   const logout = useCallback(async () => {
     await api.post('/auth/logout');
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, registerLibrarian, logout }}>
       {children}
     </AuthContext.Provider>
   );

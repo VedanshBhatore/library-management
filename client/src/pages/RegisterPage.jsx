@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext.jsx';
 
-// Student self-signup only — there's no path in this UI (or the API behind
-// it) to create a LIBRARIAN account. See CLAUDE.md / README for why.
+// Two self-signup paths: STUDENT (open to anyone) and LIBRARIAN (gated by a
+// shared secret key the server checks — see server/.env's
+// LIBRARIAN_SIGNUP_KEY and server/src/routes/auth.routes.js). The key is
+// never validated here on the client; a wrong or missing key just comes
+// back as a 403 from the server.
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register, registerLibrarian } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', enrollmentNo: '' });
+  const [role, setRole] = useState('STUDENT');
+  const [form, setForm] = useState({ name: '', email: '', password: '', enrollmentNo: '', key: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -20,8 +24,13 @@ export default function RegisterPage() {
     setError('');
     setSubmitting(true);
     try {
-      await register(form);
-      navigate('/student', { replace: true });
+      if (role === 'STUDENT') {
+        await register(form);
+        navigate('/student', { replace: true });
+      } else {
+        await registerLibrarian(form);
+        navigate('/librarian', { replace: true });
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -32,8 +41,22 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h1 className="text-xl font-semibold text-gray-900">Create a student account</h1>
-        <p className="mt-1 text-sm text-gray-500">Librarian accounts are set up separately.</p>
+        <h1 className="text-xl font-semibold text-gray-900">Create an account</h1>
+
+        <div className="mt-4 flex rounded-md border border-gray-200 p-1">
+          {['STUDENT', 'LIBRARIAN'].map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRole(r)}
+              className={`flex-1 rounded px-3 py-1.5 text-sm font-medium ${
+                role === r ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {r === 'STUDENT' ? 'Student' : 'Librarian'}
+            </button>
+          ))}
+        </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
@@ -49,18 +72,20 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div>
-            <label htmlFor="enrollmentNo" className="block text-sm font-medium text-gray-700">
-              Enrollment number
-            </label>
-            <input
-              id="enrollmentNo"
-              required
-              value={form.enrollmentNo}
-              onChange={(e) => set('enrollmentNo', e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
+          {role === 'STUDENT' && (
+            <div>
+              <label htmlFor="enrollmentNo" className="block text-sm font-medium text-gray-700">
+                Enrollment number
+              </label>
+              <input
+                id="enrollmentNo"
+                required
+                value={form.enrollmentNo}
+                onChange={(e) => set('enrollmentNo', e.target.value)}
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          )}
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -93,6 +118,23 @@ export default function RegisterPage() {
             />
             <p className="mt-1 text-xs text-gray-400">At least 8 characters.</p>
           </div>
+
+          {role === 'LIBRARIAN' && (
+            <div>
+              <label htmlFor="key" className="block text-sm font-medium text-gray-700">
+                Librarian signup key
+              </label>
+              <input
+                id="key"
+                type="password"
+                required
+                value={form.key}
+                onChange={(e) => set('key', e.target.value)}
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              <p className="mt-1 text-xs text-gray-400">Provided separately to library staff.</p>
+            </div>
+          )}
 
           {error && (
             <p role="alert" className="text-sm text-red-600">
