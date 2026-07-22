@@ -21,13 +21,22 @@ export function AuthProvider({ children }) {
     return user;
   }, []);
 
+  // Public self-registration always creates a STUDENT account (see
+  // server/src/routes/auth.routes.js) — it logs the new user in immediately,
+  // same as login.
+  const register = useCallback(async ({ name, email, password, enrollmentNo }) => {
+    const { user } = await api.post('/auth/register', { name, email, password, enrollmentNo });
+    setUser(user);
+    return user;
+  }, []);
+
   const logout = useCallback(async () => {
     await api.post('/auth/logout');
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

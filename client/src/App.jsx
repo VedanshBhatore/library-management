@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './lib/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
 import LibrarianDashboardPage from './pages/librarian/DashboardPage.jsx';
 import BooksPage from './pages/librarian/BooksPage.jsx';
 import StudentsPage from './pages/librarian/StudentsPage.jsx';
@@ -16,6 +17,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
       <Route path="/librarian" element={<ProtectedRoute roles={['LIBRARIAN']}><LibrarianDashboardPage /></ProtectedRoute>} />
       <Route path="/librarian/books" element={<ProtectedRoute roles={['LIBRARIAN']}><BooksPage /></ProtectedRoute>} />
