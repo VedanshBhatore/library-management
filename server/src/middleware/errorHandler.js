@@ -35,6 +35,15 @@ export function errorHandler(err, req, res, next) {
     // Prisma unique constraint violation.
     return res.status(409).json({ error: { message: `A record with that ${err.meta?.target ?? 'value'} already exists.` } });
   }
+  if (err.code === 'P2003') {
+    // Prisma foreign key constraint violation — e.g. deleting a book/copy
+    // that still has rental history referencing it.
+    return res.status(409).json({ error: { message: 'This record is still referenced by other data and cannot be deleted.' } });
+  }
+  if (err.code === 'P2025') {
+    // Prisma "record to update/delete not found".
+    return res.status(404).json({ error: { message: 'Record not found.' } });
+  }
 
   console.error(err);
   res.status(500).json({ error: { message: 'Something went wrong on the server.' } });

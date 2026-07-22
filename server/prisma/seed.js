@@ -213,8 +213,10 @@ async function main() {
   const sapiens = byIsbn('9780307887894');
   await issue({ copy: sapiens.copies[0], student: harish, librarian: librarian2, issueDate: daysFromNow(-13), dueDate: daysFromNow(1) });
 
+  // catcherInTheRye's only copy goes to David (not Bob, who is already at
+  // MAX_ACTIVE_RENTALS) so Harish and Isha have someone to queue behind.
   const catcherInTheRye = byIsbn('9780316769488'); // single copy title
-  await issue({ copy: catcherInTheRye.copies[0], student: bob, librarian: librarian1, issueDate: daysFromNow(-4), dueDate: daysFromNow(LOAN_DAYS - 4) });
+  await issue({ copy: catcherInTheRye.copies[0], student: david, librarian: librarian1, issueDate: daysFromNow(-4), dueDate: daysFromNow(LOAN_DAYS - 4) });
   await prisma.reservation.create({
     data: { bookId: catcherInTheRye.id, studentId: harish.id, status: 'WAITING' },
   });
@@ -222,19 +224,21 @@ async function main() {
     data: { bookId: catcherInTheRye.id, studentId: isha.id, status: 'WAITING' },
   });
 
-  // Isha: overdue active rental (heavier, 10 days late) + a READY reservation
-  // (promoted already, within its 48h window) on a different single-copy title.
-  const hitchhikers = byIsbn('9780345391803'); // single copy title
-  await issue({ copy: hitchhikers.copies[0], student: gita, librarian: librarian1, issueDate: daysFromNow(-30), dueDate: daysFromNow(-16) });
+  // Isha also has a READY reservation on a different single-copy title. A
+  // READY reservation means a copy was just returned and is being held on
+  // the shelf for her, so this copy is deliberately left AVAILABLE (not
+  // issued to anyone) rather than out with another student.
+  const designPatterns = byIsbn('9780596007126'); // single copy title
   await prisma.reservation.create({
     data: {
-      bookId: hitchhikers.id,
+      bookId: designPatterns.id,
       studentId: isha.id,
       status: 'READY',
       expiresAt: daysFromNow(1), // still within its 48h window
     },
   });
 
+  // Isha: overdue active rental, 10 days late.
   const cosmos = byIsbn('9780375508269');
   await issue({ copy: cosmos.copies[0], student: isha, librarian: librarian2, issueDate: daysFromNow(-24), dueDate: daysFromNow(-10) });
 
