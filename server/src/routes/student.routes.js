@@ -48,23 +48,36 @@ studentRouter.get(
     });
     const activeByStudent = new Map(activeCounts.map((c) => [c.studentId, c._count._all]));
 
+    // Full unpaid fine rows (not just a total) so the librarian UI can
+    // collect a specific fine directly from the student list without a
+    // separate lookup.
     const unpaidFines = await prisma.fine.findMany({
       where: { isPaid: false, rental: { studentId: { in: students.map((s) => s.id) } } },
-      select: { amount: true, rental: { select: { studentId: true } } },
+      select: {
+        id: true,
+        amount: true,
+        rental: { select: { studentId: true, copy: { select: { book: { select: { title: true } } } } } },
+      },
     });
     const unpaidByStudent = new Map();
     for (const fine of unpaidFines) {
       const id = fine.rental.studentId;
-      unpaidByStudent.set(id, (unpaidByStudent.get(id) ?? 0) + fine.amount);
+      const list = unpaidByStudent.get(id) ?? [];
+      list.push({ id: fine.id, amount: fine.amount, bookTitle: fine.rental.copy.book.title });
+      unpaidByStudent.set(id, list);
     }
 
     res.json({
       data: {
-        students: students.map(({ _count, ...s }) => ({
-          ...s,
-          activeRentalsCount: activeByStudent.get(s.id) ?? 0,
-          unpaidFinesTotal: unpaidByStudent.get(s.id) ?? 0,
-        })),
+        students: students.map(({ _count, ...s }) => {
+          const unpaidFines = unpaidByStudent.get(s.id) ?? [];
+          return {
+            ...s,
+            activeRentalsCount: activeByStudent.get(s.id) ?? 0,
+            unpaidFines,
+            unpaidFinesTotal: unpaidFines.reduce((sum, f) => sum + f.amount, 0),
+          };
+        }),
       },
     });
   })

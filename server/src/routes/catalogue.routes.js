@@ -2,12 +2,17 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { syncExpiredReservations } from '../lib/reservationExpiry.js';
 
 export const catalogueRouter = Router();
 
 // Read-only search available to both roles (a librarian browsing the
 // catalogue is harmless); management operations live in book.routes.js.
 catalogueRouter.use(requireAuth);
+catalogueRouter.use(asyncHandler(async (req, res, next) => {
+  await syncExpiredReservations();
+  next();
+}));
 
 function summarize(book, myReservation) {
   // LOST/DAMAGED copies are out of circulation, so they count toward

@@ -5,10 +5,15 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { asyncHandler, validateBody } from '../middleware/errorHandler.js';
 import { getStudentStanding } from '../lib/studentStanding.js';
 import { checkBorrowingStanding } from '../rules.js';
+import { syncExpiredReservations } from '../lib/reservationExpiry.js';
 
 export const reservationRouter = Router();
 
 reservationRouter.use(requireAuth, requireRole('STUDENT'));
+reservationRouter.use(asyncHandler(async (req, res, next) => {
+  await syncExpiredReservations();
+  next();
+}));
 
 const reserveSchema = z.object({ bookId: z.string().min(1) });
 
