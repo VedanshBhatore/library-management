@@ -1,9 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { authRouter } from './routes/auth.routes.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
-// Express app assembly. Auth routes and role middleware are wired in here
-// starting Phase 2; for now this just proves the scaffold boots.
+// Express app assembly. Routes for books/copies/rentals/etc. are added in
+// later build phases; this wires up auth for Phase 2.
 export function createApp() {
   const app = express();
 
@@ -14,6 +16,12 @@ export function createApp() {
   app.get('/api/health', (req, res) => {
     res.json({ data: { status: 'ok' } });
   });
+
+  app.use('/api/auth', authRouter);
+
+  // Must be registered last: Express only treats a 4-arg middleware as an
+  // error handler, and it only catches errors from routes mounted before it.
+  app.use(errorHandler);
 
   return app;
 }
