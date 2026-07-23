@@ -97,7 +97,10 @@ reservationRouter.get(
   asyncHandler(async (req, res) => {
     const reservations = await prisma.reservation.findMany({
       where: { status: { in: ['WAITING', 'READY'] } },
-      include: { book: true, student: { select: { id: true, name: true, email: true, enrollmentNo: true } } },
+      include: {
+        book: { include: { copies: true } },
+        student: { select: { id: true, name: true, email: true, enrollmentNo: true } },
+      },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -111,18 +114,31 @@ reservationRouter.get(
     const books = [...byBook.values()]
       .map(({ book, reservations }) => {
         let waitingSeen = 0;
+        const hasReady = reservations.some((r) => r.status === 'READY');
+        const { copies, ...bookInfo } = book;
+        const availableCopies = copies.filter((c) => c.status === 'AVAILABLE');
+
         return {
-          book,
+          book: bookInfo,
           reservationCount: reservations.length,
-          reservations: reservations.map((r) => ({
-            id: r.id,
-            student: r.student,
-            status: r.status,
-            createdAt: r.createdAt,
-            expiresAt: r.expiresAt,
-            // Queue position among WAITING only; READY has no position, it's next.
-            queuePosition: r.status === 'WAITING' ? ++waitingSeen : null,
-          })),
+          availableCopies,
+          reservations: reservations.map((r) => {
+            const queuePosition = r.status === 'WAITING' ? ++waitingSeen : null;
+            return {
+              id: r.id,
+              student: r.student,
+              status: r.status,
+              createdAt: r.createdAt,
+              expiresAt: r.expiresAt,
+              // Queue position among WAITING only; READY has no position, it's next.
+              queuePosition,
+              // Who the "Allot" action should target: the READY hold if one
+              // exists, otherwise whoever is first in the WAITING line —
+              // never anyone further back, so a copy can't be handed to the
+              // 2nd-in-line while the 1st is still waiting.
+              isNextInLine: r.status === 'READY' || (!hasReady && queuePosition === 1),
+            };
+          }),
         };
       })
       .sort((a, b) => b.reservationCount - a.reservationCount || a.book.title.localeCompare(b.book.title));
