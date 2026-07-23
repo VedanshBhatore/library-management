@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "build": "prisma generate && prisma migrate deploy",
     "test": "vitest run",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",

@@ -47,6 +47,56 @@ cd server
 npm test
 ```
 
+## Deployment
+
+Deployed as three separate services — a Postgres database (Neon), the
+Express API (Render), and the static Vite build (Vercel) — connected in
+that order, since each later step needs a URL/connection string from the
+one before it.
+
+**1. Database — Neon**
+
+Create a free Neon project and copy its connection string (Neon appends
+`?sslmode=require`, which Prisma needs — keep it). You'll paste this into
+Render's environment variables in the next step.
+
+**2. Server — Render**
+
+Create a **Web Service** from the GitHub repo, root directory `server`:
+
+| Setting | Value |
+|---|---|
+| Build Command | `npm install && npm run build` |
+| Start Command | `npm start` |
+| Environment variables | `DATABASE_URL` (from Neon), `JWT_SECRET` (long random string), `LIBRARIAN_SIGNUP_KEY`, `CLIENT_ORIGIN` (your Vercel URL, added after step 3), `PORT` (Render sets this automatically — don't override it) |
+
+`npm run build` runs `prisma generate && prisma migrate deploy`, applying
+committed migrations to the Neon database — it does not create new
+migrations or touch data beyond that. Once the service is live, run the
+seed script **once**, from your machine, pointed at the Neon connection
+string, if you want the same demo data as local dev:
+
+```bash
+cd server
+DATABASE_URL="<neon connection string>" node prisma/seed.js
+```
+
+`node prisma/seed.js` **wipes and recreates all data** — never run it
+against a database that has real users on it.
+
+**3. Client — Vercel**
+
+Create a project from the same GitHub repo, root directory `client`
+(Vercel auto-detects the Vite build command/output). Before deploying,
+edit [`client/vercel.json`](client/vercel.json) and replace the
+placeholder `destination` with your actual Render URL — this is what
+proxies `/api/*` requests to the backend so the browser only ever talks
+to one origin (your Vercel domain), which keeps the httpOnly auth cookie
+working without cross-site cookie configuration.
+
+After the first deploy, go back to Render and set `CLIENT_ORIGIN` to the
+Vercel URL, then redeploy the server so CORS reflects the real origin.
+
 ## Demo login credentials
 
 Seeded by `server/prisma/seed.js` — running it wipes and recreates all data.
