@@ -63,12 +63,23 @@ rentalRouter.post(
     const issueDate = new Date();
     const dueDate = computeDueDate(issueDate);
 
+    // If this student had a WAITING/READY reservation on this title, issuing
+    // them a copy (whether it's the one held for them or just the next one
+    // they asked for at the desk) fulfills it — otherwise it would keep
+    // showing as an open reservation even though they now have the book.
+    const ownReservation = await prisma.reservation.findFirst({
+      where: { bookId: copy.bookId, studentId, status: { in: ['WAITING', 'READY'] } },
+    });
+
     const [rental] = await prisma.$transaction([
       prisma.rental.create({
         data: { copyId: copy.id, studentId, issuedById: req.user.id, issueDate, dueDate, status: 'ACTIVE' },
         include: rentalInclude,
       }),
       prisma.bookCopy.update({ where: { id: copy.id }, data: { status: 'ISSUED' } }),
+      ...(ownReservation
+        ? [prisma.reservation.update({ where: { id: ownReservation.id }, data: { status: 'FULFILLED' } })]
+        : []),
     ]);
 
     await prisma.activityLog.create({
