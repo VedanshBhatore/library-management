@@ -98,6 +98,14 @@ disabling a button is only ever a hint.
 - Issuing and returning are librarian-only actions (a physical handover
   needs a librarian to confirm it); renewing and reserving are
   student-initiated.
+- If a title has any open (`WAITING`/`READY`) reservations, an available
+  copy can only be issued to one of those reserved students — never to a
+  student with no reservation on that title. It does *not* have to be
+  whoever reserved first: a no-show shouldn't block the line, so a
+  librarian can issue to any reserved student who actually shows up. The
+  librarian dashboard's Reservations page has a one-click "Allot" button
+  for this; it just skips the manual student/copy search, it isn't a
+  separate rule.
 - Public self-registration (`/register`) only ever creates `STUDENT`
   accounts. Librarian self-signup is a separate page/endpoint
   (`/register-librarian`) gated by a shared secret, `LIBRARIAN_SIGNUP_KEY`,

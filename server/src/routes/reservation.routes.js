@@ -132,10 +132,11 @@ reservationRouter.get(
               expiresAt: r.expiresAt,
               // Queue position among WAITING only; READY has no position, it's next.
               queuePosition,
-              // Who the "Allot" action should target: the READY hold if one
-              // exists, otherwise whoever is first in the WAITING line —
-              // never anyone further back, so a copy can't be handed to the
-              // 2nd-in-line while the 1st is still waiting.
+              // Informational only — the READY hold if one exists, otherwise
+              // whoever is first in the WAITING line. Any reserved student
+              // can actually be allotted a copy (a no-show shouldn't block
+              // the queue), so this just flags who a librarian would
+              // normally serve first, not who they're limited to.
               isNextInLine: r.status === 'READY' || (!hasReady && queuePosition === 1),
             };
           }),

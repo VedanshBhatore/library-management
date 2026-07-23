@@ -25,9 +25,11 @@ export default function ReservationsPage() {
     load();
   }, [load]);
 
-  // Only ever targets whoever is next in line (the READY hold, or the
-  // earliest WAITING reservation) — the button doesn't exist for anyone
-  // else, so there's no way to allot out of order from this page.
+  // Any reserved student can be allotted a copy, not just whoever's first —
+  // a no-show shouldn't block the line, so the librarian can hand it to
+  // whichever reserved student actually showed up. The server still refuses
+  // to issue this book to anyone with *no* reservation while the queue is
+  // open; that's the only thing actually locked down.
   async function handleAllot(book, reservation, barcode) {
     setAllotting(reservation.id);
     setError('');
@@ -82,7 +84,7 @@ export default function ReservationsPage() {
 
               <ul className="mt-3 divide-y divide-gray-50 border border-gray-100 rounded-md">
                 {reservations.map((r) => {
-                  const canAllot = r.isNextInLine && availableCopies.length > 0;
+                  const canAllot = availableCopies.length > 0;
                   return (
                     <li key={r.id} className="flex items-center justify-between px-3 py-2 text-sm">
                       <span>
@@ -93,6 +95,7 @@ export default function ReservationsPage() {
                         {r.status === 'READY' && r.expiresAt && (
                           <span className="text-xs text-gray-500">pick up by {new Date(r.expiresAt).toLocaleString()}</span>
                         )}
+                        {r.isNextInLine && <span className="text-xs text-indigo-500 font-medium">next in line</span>}
                         <span className={`text-xs rounded px-2 py-0.5 font-medium ${STATUS_STYLES[r.status]}`}>{r.status}</span>
                         {canAllot && (
                           <button

@@ -60,9 +60,6 @@ rentalRouter.post(
       return res.status(409).json({ error: { message: eligibility.reason } });
     }
 
-    const issueDate = new Date();
-    const dueDate = computeDueDate(issueDate);
-
     // If this student had a WAITING/READY reservation on this title, issuing
     // them a copy (whether it's the one held for them or just the next one
     // they asked for at the desk) fulfills it — otherwise it would keep
@@ -70,6 +67,26 @@ rentalRouter.post(
     const ownReservation = await prisma.reservation.findFirst({
       where: { bookId: copy.bookId, studentId, status: { in: ['WAITING', 'READY'] } },
     });
+
+    // If someone else has this title reserved, a copy can only go to a
+    // reserved student — but it doesn't have to be whoever reserved first.
+    // A no-show shouldn't block the line: the librarian can hand it to any
+    // reserved student who actually showed up, skipping ahead is fine, it's
+    // only issuing to a student with *no* reservation at all that's blocked
+    // while a queue exists.
+    if (!ownReservation) {
+      const queueExists = await prisma.reservation.findFirst({
+        where: { bookId: copy.bookId, status: { in: ['WAITING', 'READY'] } },
+      });
+      if (queueExists) {
+        return res.status(409).json({
+          error: { message: 'This title has open reservations — issue it to one of the reserved students instead.' },
+        });
+      }
+    }
+
+    const issueDate = new Date();
+    const dueDate = computeDueDate(issueDate);
 
     const [rental] = await prisma.$transaction([
       prisma.rental.create({
