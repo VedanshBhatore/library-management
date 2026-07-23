@@ -9,7 +9,7 @@ import { syncExpiredReservations } from '../lib/reservationExpiry.js';
 
 export const reservationRouter = Router();
 
-reservationRouter.use(requireAuth, requireRole('STUDENT'));
+reservationRouter.use(requireAuth);
 reservationRouter.use(asyncHandler(async (req, res, next) => {
   await syncExpiredReservations();
   next();
@@ -19,6 +19,7 @@ const reserveSchema = z.object({ bookId: z.string().min(1) });
 
 reservationRouter.post(
   '/',
+  requireRole('STUDENT'),
   validateBody(reserveSchema),
   asyncHandler(async (req, res) => {
     const { bookId } = req.body;
@@ -62,6 +63,7 @@ reservationRouter.post(
 
 reservationRouter.get(
   '/mine',
+  requireRole('STUDENT'),
   asyncHandler(async (req, res) => {
     const reservations = await prisma.reservation.findMany({
       where: { studentId: req.user.id },
@@ -82,5 +84,49 @@ reservationRouter.get(
     );
 
     res.json({ data: { reservations: withPosition } });
+  })
+);
+
+// Librarian view: every book that currently has at least one open
+// (WAITING or READY) reservation, grouped by title with its full queue,
+// sorted by demand (most-reserved title first) so a librarian scanning the
+// list immediately sees what's most contested rather than hunting for it.
+reservationRouter.get(
+  '/',
+  requireRole('LIBRARIAN'),
+  asyncHandler(async (req, res) => {
+    const reservations = await prisma.reservation.findMany({
+      where: { status: { in: ['WAITING', 'READY'] } },
+      include: { book: true, student: { select: { id: true, name: true, email: true, enrollmentNo: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const byBook = new Map();
+    for (const r of reservations) {
+      const entry = byBook.get(r.bookId) ?? { book: r.book, reservations: [] };
+      entry.reservations.push(r);
+      byBook.set(r.bookId, entry);
+    }
+
+    const books = [...byBook.values()]
+      .map(({ book, reservations }) => {
+        let waitingSeen = 0;
+        return {
+          book,
+          reservationCount: reservations.length,
+          reservations: reservations.map((r) => ({
+            id: r.id,
+            student: r.student,
+            status: r.status,
+            createdAt: r.createdAt,
+            expiresAt: r.expiresAt,
+            // Queue position among WAITING only; READY has no position, it's next.
+            queuePosition: r.status === 'WAITING' ? ++waitingSeen : null,
+          })),
+        };
+      })
+      .sort((a, b) => b.reservationCount - a.reservationCount || a.book.title.localeCompare(b.book.title));
+
+    res.json({ data: { books } });
   })
 );

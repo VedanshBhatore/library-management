@@ -7,6 +7,7 @@ import LibrarianDashboardPage from './pages/librarian/DashboardPage.jsx';
 import BooksPage from './pages/librarian/BooksPage.jsx';
 import StudentsPage from './pages/librarian/StudentsPage.jsx';
 import ActivityLogPage from './pages/librarian/ActivityLogPage.jsx';
+import LibrarianReservationsPage from './pages/librarian/ReservationsPage.jsx';
 import StudentDashboardPage from './pages/student/DashboardPage.jsx';
 import CataloguePage from './pages/student/CataloguePage.jsx';
 import ReservationsPage from './pages/student/ReservationsPage.jsx';
@@ -22,6 +23,7 @@ export default function App() {
       <Route path="/librarian" element={<ProtectedRoute roles={['LIBRARIAN']}><LibrarianDashboardPage /></ProtectedRoute>} />
       <Route path="/librarian/books" element={<ProtectedRoute roles={['LIBRARIAN']}><BooksPage /></ProtectedRoute>} />
       <Route path="/librarian/students" element={<ProtectedRoute roles={['LIBRARIAN']}><StudentsPage /></ProtectedRoute>} />
+      <Route path="/librarian/reservations" element={<ProtectedRoute roles={['LIBRARIAN']}><LibrarianReservationsPage /></ProtectedRoute>} />
       <Route path="/librarian/activity" element={<ProtectedRoute roles={['LIBRARIAN']}><ActivityLogPage /></ProtectedRoute>} />
 
       <Route path="/student" element={<ProtectedRoute roles={['STUDENT']}><StudentDashboardPage /></ProtectedRoute>} />

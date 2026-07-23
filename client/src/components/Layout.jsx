@@ -5,6 +5,7 @@ const LIBRARIAN_NAV = [
   { to: '/librarian', label: 'Dashboard', end: true },
   { to: '/librarian/books', label: 'Books' },
   { to: '/librarian/students', label: 'Students' },
+  { to: '/librarian/reservations', label: 'Reservations' },
   { to: '/librarian/activity', label: 'Activity Log' },
 ];
 
