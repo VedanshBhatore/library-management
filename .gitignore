@@ -8,6 +8,13 @@ CLAUDE.md
 *.log
 .DS_Store
 
+# AI tool scaffolding - not part of this project's stack, never committed
+.cursor/
+.devin/
+.agents/
+prisma.config.ts
+tsconfig.json
+
 # editor/OS cruft
 .vscode/
 .idea/
