@@ -73,15 +73,29 @@ reservationRouter.get(
 
     // Queue position only makes sense for WAITING reservations: how many
     // other WAITING reservations on the same title were created earlier.
-    const withPosition = await Promise.all(
-      reservations.map(async (r) => {
-        if (r.status !== 'WAITING') return { ...r, queuePosition: null };
-        const aheadCount = await prisma.reservation.count({
-          where: { bookId: r.bookId, status: 'WAITING', createdAt: { lt: r.createdAt } },
-        });
-        return { ...r, queuePosition: aheadCount + 1 };
-      })
-    );
+    // Fetch every WAITING reservation across the books involved in one query
+    // (instead of a per-reservation COUNT) and rank them in memory — same
+    // fan-out this N+1 had, done as 2 queries total instead of 1+N.
+    const waitingBookIds = [...new Set(reservations.filter((r) => r.status === 'WAITING').map((r) => r.bookId))];
+    const waitingQueues = waitingBookIds.length
+      ? await prisma.reservation.findMany({
+          where: { bookId: { in: waitingBookIds }, status: 'WAITING' },
+          select: { id: true, bookId: true },
+          orderBy: { createdAt: 'asc' },
+        })
+      : [];
+    const positionById = new Map();
+    const seenPerBook = new Map();
+    for (const w of waitingQueues) {
+      const position = (seenPerBook.get(w.bookId) ?? 0) + 1;
+      seenPerBook.set(w.bookId, position);
+      positionById.set(w.id, position);
+    }
+
+    const withPosition = reservations.map((r) => ({
+      ...r,
+      queuePosition: r.status === 'WAITING' ? positionById.get(r.id) : null,
+    }));
 
     res.json({ data: { reservations: withPosition } });
   })
