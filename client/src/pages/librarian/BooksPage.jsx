@@ -4,6 +4,7 @@ import BookForm from '../../components/BookForm.jsx';
 import BookRow from '../../components/BookRow.jsx';
 import Banner from '../../components/Banner.jsx';
 import { api } from '../../lib/api.js';
+import { PlusIcon, SearchIcon } from '../../components/icons.jsx';
 
 export default function BooksPage() {
   const [books, setBooks] = useState([]);
@@ -46,18 +47,19 @@ export default function BooksPage() {
 
   return (
     <Layout>
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Books</h1>
-        <button
-          onClick={() => setShowAddForm((x) => !x)}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500"
-        >
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="page-title">Books</h1>
+          <p className="mt-1 text-sm text-slate-500">Manage titles, copies, and availability.</p>
+        </div>
+        <button onClick={() => setShowAddForm((x) => !x)} className="btn-primary shrink-0">
+          <PlusIcon size={16} />
           {showAddForm ? 'Cancel' : 'Add book'}
         </button>
       </div>
 
       {showAddForm && (
-        <div className="mt-4 bg-white rounded-xl border border-gray-200 p-5">
+        <div className="mt-4 card p-5 animate-fade-up">
           <BookForm submitLabel="Create book" onSubmit={handleAddBook} />
         </div>
       )}
@@ -67,20 +69,22 @@ export default function BooksPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by title, author, or ISBN"
-          className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="input flex-1"
         />
-        <button className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium hover:bg-gray-200">Search</button>
+        <button className="btn-secondary">
+          <SearchIcon size={15} /> Search
+        </button>
       </form>
 
       <div className="mt-2">
         <Banner type="error">{error}</Banner>
       </div>
 
-      <div className="mt-4 bg-white rounded-xl border border-gray-200">
+      <div className="mt-4 card overflow-hidden">
         {loading ? (
-          <p className="p-5 text-sm text-gray-400">Loading...</p>
+          <p className="p-5 text-sm text-slate-400">Loading...</p>
         ) : books.length === 0 ? (
-          <p className="p-5 text-sm text-gray-400">No books found.</p>
+          <p className="p-5 text-sm text-slate-400">No books found.</p>
         ) : (
           books.map((book) => <BookRow key={book.id} book={book} onChange={() => load(search)} />)
         )}

@@ -5,7 +5,11 @@ import { api } from '../../lib/api.js';
 
 const STATUS_STYLES = {
   WAITING: 'bg-amber-50 text-amber-700',
-  READY: 'bg-green-50 text-green-700',
+  READY: 'bg-emerald-50 text-emerald-700',
+};
+const STATUS_DOTS = {
+  WAITING: 'bg-amber-500',
+  READY: 'bg-emerald-500',
 };
 
 export default function ReservationsPage() {
@@ -47,8 +51,8 @@ export default function ReservationsPage() {
 
   return (
     <Layout>
-      <h1 className="text-xl font-semibold text-gray-900">Reservations</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <h1 className="page-title">Reservations</h1>
+      <p className="mt-1 text-sm text-slate-500">
         Titles with an open reservation queue, most-reserved first.
       </p>
 
@@ -58,50 +62,54 @@ export default function ReservationsPage() {
       </div>
 
       {loading ? (
-        <p className="mt-4 text-sm text-gray-400">Loading...</p>
+        <p className="mt-4 text-sm text-slate-400">Loading...</p>
       ) : books.length === 0 ? (
-        <p className="mt-4 text-sm text-gray-400">No open reservations right now.</p>
+        <p className="mt-4 text-sm text-slate-400">No open reservations right now.</p>
       ) : (
-        <div className="mt-4 bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+        <div className="mt-4 card divide-y divide-slate-100 overflow-hidden">
           {books.map(({ book, reservationCount, availableCopies, reservations }) => (
             <div key={book.id} className="p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <p className="font-medium text-gray-900">{book.title}</p>
-                  <p className="text-sm text-gray-500">{book.author}</p>
+                  <p className="font-medium text-slate-900">{book.title}</p>
+                  <p className="text-sm text-slate-500">{book.author}</p>
                 </div>
                 <span className="flex items-center gap-2">
                   {availableCopies.length > 0 && (
-                    <span className="rounded-full bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1">
+                    <span className="badge bg-emerald-50 text-emerald-700">
+                      <span className="badge-dot bg-emerald-500" />
                       {availableCopies.length} available
                     </span>
                   )}
-                  <span className="rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold px-2.5 py-1">
+                  <span className="badge bg-brand-50 text-brand-700">
                     {reservationCount} reservation{reservationCount === 1 ? '' : 's'}
                   </span>
                 </span>
               </div>
 
-              <ul className="mt-3 divide-y divide-gray-50 border border-gray-100 rounded-md">
+              <ul className="mt-3 divide-y divide-slate-50 border border-slate-100 rounded-xl overflow-hidden">
                 {reservations.map((r) => {
                   const canAllot = availableCopies.length > 0;
                   return (
-                    <li key={r.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                    <li key={r.id} className="flex items-center justify-between px-3.5 py-2.5 text-sm hover:bg-slate-50/60">
                       <span>
-                        {r.student.name} <span className="text-gray-400">({r.student.email})</span>
+                        {r.student.name} <span className="text-slate-400">({r.student.email})</span>
                       </span>
                       <span className="flex items-center gap-2">
-                        {r.status === 'WAITING' && <span className="text-xs text-gray-500">#{r.queuePosition} in line</span>}
+                        {r.status === 'WAITING' && <span className="text-xs text-slate-500">#{r.queuePosition} in line</span>}
                         {r.status === 'READY' && r.expiresAt && (
-                          <span className="text-xs text-gray-500">pick up by {new Date(r.expiresAt).toLocaleString()}</span>
+                          <span className="text-xs text-slate-500">pick up by {new Date(r.expiresAt).toLocaleString()}</span>
                         )}
-                        {r.isNextInLine && <span className="text-xs text-indigo-500 font-medium">next in line</span>}
-                        <span className={`text-xs rounded px-2 py-0.5 font-medium ${STATUS_STYLES[r.status]}`}>{r.status}</span>
+                        {r.isNextInLine && <span className="text-xs text-brand-600 font-medium">next in line</span>}
+                        <span className={`badge ${STATUS_STYLES[r.status]}`}>
+                          <span className={`badge-dot ${STATUS_DOTS[r.status]}`} />
+                          {r.status}
+                        </span>
                         {canAllot && (
                           <button
                             onClick={() => handleAllot(book, r, availableCopies[0].barcode)}
                             disabled={allotting === r.id}
-                            className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+                            className="btn-primary py-1 px-2.5 text-xs"
                           >
                             {allotting === r.id ? 'Allotting...' : 'Allot'}
                           </button>

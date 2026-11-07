@@ -1,10 +1,22 @@
 const STYLES = {
-  AVAILABLE: 'bg-green-50 text-green-700',
+  AVAILABLE: 'bg-emerald-50 text-emerald-700',
   ISSUED: 'bg-amber-50 text-amber-700',
-  LOST: 'bg-red-50 text-red-700',
-  DAMAGED: 'bg-gray-100 text-gray-600',
+  LOST: 'bg-rose-50 text-rose-700',
+  DAMAGED: 'bg-slate-100 text-slate-600',
+};
+
+const DOTS = {
+  AVAILABLE: 'bg-emerald-500',
+  ISSUED: 'bg-amber-500',
+  LOST: 'bg-rose-500',
+  DAMAGED: 'bg-slate-400',
 };
 
 export default function CopyStatusBadge({ status }) {
-  return <span className={`rounded px-2 py-0.5 text-xs font-medium ${STYLES[status]}`}>{status}</span>;
+  return (
+    <span className={`badge ${STYLES[status]}`}>
+      <span className={`badge-dot ${DOTS[status]}`} />
+      {status}
+    </span>
+  );
 }

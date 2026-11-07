@@ -43,7 +43,11 @@ export default function App() {
 function RoleHome() {
   const { user, loading } = useAuth();
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-400 text-sm">
+        Loading…
+      </div>
+    );
   }
   if (!user) return <Navigate to="/login" replace />;
   return <Navigate to={user.role === 'LIBRARIAN' ? '/librarian' : '/student'} replace />;

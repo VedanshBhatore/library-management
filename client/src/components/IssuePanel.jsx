@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../lib/api.js';
 import Banner from './Banner.jsx';
+import { ArrowRightIcon, SearchIcon } from './icons.jsx';
 
 // LOAN_DAYS mirrored here purely so the confirm step can show a due-date
 // *preview* before the librarian commits — the server (rules.js) always
@@ -77,18 +78,21 @@ export default function IssuePanel({ onIssued }) {
   const previewDueDate = new Date(Date.now() + LOAN_DAYS_PREVIEW * 24 * 60 * 60 * 1000);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="font-semibold text-gray-900">Issue a book</h3>
+    <div className="card p-5">
+      <h3 className="font-display font-semibold text-slate-900">Issue a book</h3>
 
       <div className="mt-4 space-y-4">
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-1">1. Find student</p>
+          <p className="text-sm font-medium text-slate-700 mb-1.5">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-700 text-xs font-bold mr-1.5">1</span>
+            Find student
+          </p>
           {selectedStudent ? (
-            <div className="flex items-center justify-between rounded-md bg-indigo-50 px-3 py-2 text-sm">
+            <div className="flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2 text-sm">
               <span>
                 {selectedStudent.name} ({selectedStudent.email})
               </span>
-              <button className="text-indigo-600 hover:underline" onClick={() => setSelectedStudent(null)}>
+              <button className="link text-xs" onClick={() => setSelectedStudent(null)}>
                 change
               </button>
             </div>
@@ -99,25 +103,29 @@ export default function IssuePanel({ onIssued }) {
                   value={studentQuery}
                   onChange={(e) => setStudentQuery(e.target.value)}
                   placeholder="Search name, email, or enrollment no."
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="input flex-1"
                 />
-                <button className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium hover:bg-gray-200">
-                  Search
+                <button className="btn-secondary">
+                  <SearchIcon size={15} />
                 </button>
               </form>
               {students.length > 0 && (
-                <ul className="mt-2 max-h-40 overflow-y-auto divide-y divide-gray-100 border border-gray-200 rounded-md">
+                <ul className="mt-2 max-h-40 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl">
                   {students.map((s) => (
                     <li key={s.id}>
                       <button
                         onClick={() => setSelectedStudent(s)}
                         disabled={!s.isActive}
-                        className="w-full flex items-center justify-between text-left px-3 py-2 text-sm hover:bg-indigo-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        className="w-full flex items-center justify-between text-left px-3 py-2 text-sm hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                       >
                         <span>
                           {s.name} ({s.email}){!s.isActive && ' — deactivated'}
                         </span>
-                        {s.isActive && <span className="text-indigo-600 font-medium shrink-0 ml-2">Select →</span>}
+                        {s.isActive && (
+                          <span className="text-brand-600 font-medium shrink-0 ml-2 inline-flex items-center gap-1">
+                            Select <ArrowRightIcon size={13} />
+                          </span>
+                        )}
                       </button>
                     </li>
                   ))}
@@ -128,13 +136,16 @@ export default function IssuePanel({ onIssued }) {
         </div>
 
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-1">2. Find an available copy</p>
+          <p className="text-sm font-medium text-slate-700 mb-1.5">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-700 text-xs font-bold mr-1.5">2</span>
+            Find an available copy
+          </p>
           {selectedCopy ? (
-            <div className="flex items-center justify-between rounded-md bg-indigo-50 px-3 py-2 text-sm">
+            <div className="flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2 text-sm">
               <span>
                 {selectedBookTitle} — barcode {selectedCopy.barcode}
               </span>
-              <button className="text-indigo-600 hover:underline" onClick={() => setSelectedCopy(null)}>
+              <button className="link text-xs" onClick={() => setSelectedCopy(null)}>
                 change
               </button>
             </div>
@@ -145,23 +156,23 @@ export default function IssuePanel({ onIssued }) {
                   value={bookQuery}
                   onChange={(e) => setBookQuery(e.target.value)}
                   placeholder="Search title, author, or ISBN"
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="input flex-1"
                 />
-                <button className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium hover:bg-gray-200">
-                  Search
+                <button className="btn-secondary">
+                  <SearchIcon size={15} />
                 </button>
               </form>
               {books.length > 0 && (
-                <ul className="mt-2 max-h-48 overflow-y-auto divide-y divide-gray-100 border border-gray-100 rounded-md">
+                <ul className="mt-2 max-h-48 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl">
                   {books.map((b) => {
                     const available = b.copies.filter((c) => c.status === 'AVAILABLE');
                     return (
                       <li key={b.id} className="px-3 py-2 text-sm">
-                        <p className="font-medium text-gray-800">
-                          {b.title} <span className="text-gray-400 font-normal">by {b.author}</span>
+                        <p className="font-medium text-slate-800">
+                          {b.title} <span className="text-slate-400 font-normal">by {b.author}</span>
                         </p>
                         {available.length === 0 ? (
-                          <p className="text-gray-400 text-xs mt-1">No available copies.</p>
+                          <p className="text-slate-400 text-xs mt-1">No available copies.</p>
                         ) : (
                           <div className="mt-1 flex flex-wrap gap-1.5">
                             {available.map((c) => (
@@ -171,7 +182,7 @@ export default function IssuePanel({ onIssued }) {
                                   setSelectedCopy(c);
                                   setSelectedBookTitle(b.title);
                                 }}
-                                className="rounded border border-gray-300 px-2 py-0.5 text-xs hover:bg-indigo-50 hover:border-indigo-300"
+                                className="rounded-lg border border-slate-200 px-2 py-0.5 text-xs hover:bg-brand-50 hover:border-brand-300 transition"
                               >
                                 {c.barcode}
                               </button>
@@ -188,15 +199,11 @@ export default function IssuePanel({ onIssued }) {
         </div>
 
         {selectedStudent && selectedCopy && (
-          <div className="rounded-md border border-gray-200 p-3">
-            <p className="text-sm text-gray-700">
+          <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-3 animate-fade-in">
+            <p className="text-sm text-slate-700">
               Due back on <span className="font-medium">{previewDueDate.toLocaleDateString()}</span> (14-day loan).
             </p>
-            <button
-              onClick={confirmIssue}
-              disabled={submitting}
-              className="mt-2 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
-            >
+            <button onClick={confirmIssue} disabled={submitting} className="btn-primary w-full mt-2 py-2">
               {submitting ? 'Issuing...' : 'Confirm issue'}
             </button>
           </div>

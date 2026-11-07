@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../lib/api.js';
 import Banner from './Banner.jsx';
+import { SearchIcon } from './icons.jsx';
 
 // A USB barcode scanner just types digits into a focused text input and
 // hits Enter — no scanner-specific code needed, plain form submission works.
@@ -49,8 +50,8 @@ export default function ReturnPanel({ onReturned }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="font-semibold text-gray-900">Return a book</h3>
+    <div className="card p-5">
+      <h3 className="font-display font-semibold text-slate-900">Return a book</h3>
 
       <form onSubmit={lookUp} className="mt-4 flex gap-2">
         <input
@@ -58,39 +59,35 @@ export default function ReturnPanel({ onReturned }) {
           value={barcode}
           onChange={(e) => setBarcode(e.target.value)}
           placeholder="Scan or type barcode"
-          className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="input flex-1"
         />
-        <button disabled={loading} className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium hover:bg-gray-200">
-          Look up
+        <button disabled={loading} className="btn-secondary">
+          <SearchIcon size={15} /> Look up
         </button>
       </form>
 
       {preview && (
-        <div className="mt-3 rounded-md border border-gray-200 p-3 text-sm space-y-1">
+        <div className="mt-3 rounded-xl border border-slate-200 p-3.5 text-sm space-y-1.5 animate-fade-in">
           <p>
-            <span className="text-gray-500">Book:</span> {preview.rental.copy.book.title}
+            <span className="text-slate-500">Book:</span> {preview.rental.copy.book.title}
           </p>
           <p>
-            <span className="text-gray-500">Student:</span> {preview.rental.student.name}
+            <span className="text-slate-500">Student:</span> {preview.rental.student.name}
           </p>
           <p>
-            <span className="text-gray-500">Due date:</span> {new Date(preview.rental.dueDate).toLocaleDateString()}
+            <span className="text-slate-500">Due date:</span> {new Date(preview.rental.dueDate).toLocaleDateString()}
           </p>
           <p>
-            <span className="text-gray-500">Days late:</span>{' '}
-            <span className={preview.daysLate > 0 ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
+            <span className="text-slate-500">Days late:</span>{' '}
+            <span className={preview.daysLate > 0 ? 'text-rose-600 font-medium' : 'text-emerald-600 font-medium'}>
               {preview.daysLate}
             </span>
           </p>
           <p>
-            <span className="text-gray-500">Fine owed:</span>{' '}
+            <span className="text-slate-500">Fine owed:</span>{' '}
             <span className="font-medium">₹{preview.fineOwed}</span>
           </p>
-          <button
-            onClick={confirmReturn}
-            disabled={loading}
-            className="mt-2 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
-          >
+          <button onClick={confirmReturn} disabled={loading} className="btn-primary w-full mt-1 py-2">
             {loading ? 'Returning...' : 'Confirm return'}
           </button>
         </div>

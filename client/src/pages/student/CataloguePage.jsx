@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Layout from '../../components/Layout.jsx';
 import Banner from '../../components/Banner.jsx';
 import { api } from '../../lib/api.js';
+import { SearchIcon, BookOpenIcon } from '../../components/icons.jsx';
 
 export default function CataloguePage() {
   const [books, setBooks] = useState([]);
@@ -47,20 +48,17 @@ export default function CataloguePage() {
 
   return (
     <Layout>
-      <h1 className="text-xl font-semibold text-gray-900">Catalogue</h1>
+      <h1 className="page-title">Catalogue</h1>
+      <p className="mt-1 text-sm text-slate-500">Search the full collection and reserve what's checked out.</p>
 
       <form onSubmit={handleSearch} className="mt-4 flex flex-wrap gap-2">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by title, author, ISBN, or category"
-          className="flex-1 min-w-[200px] rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="input flex-1 min-w-[200px]"
         />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-        >
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="select w-auto">
           <option value="">All categories</option>
           {categories.map((c) => (
             <option key={c} value={c}>
@@ -68,7 +66,9 @@ export default function CataloguePage() {
             </option>
           ))}
         </select>
-        <button className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium hover:bg-gray-200">Search</button>
+        <button className="btn-secondary">
+          <SearchIcon size={15} /> Search
+        </button>
       </form>
 
       <div className="mt-2 space-y-2">
@@ -77,34 +77,41 @@ export default function CataloguePage() {
       </div>
 
       {loading ? (
-        <p className="mt-4 text-sm text-gray-400">Loading...</p>
+        <p className="mt-4 text-sm text-slate-400">Loading...</p>
       ) : (
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {books.map((book) => (
-            <div key={book.id} className="bg-white rounded-xl border border-gray-200 p-4">
-              <p className="font-medium text-gray-900">{book.title}</p>
-              <p className="text-sm text-gray-500">
-                {book.author} &middot; {book.category} &middot; {book.year}
-              </p>
-              <p className="mt-2 text-sm">
-                <span className={book.availableCopies > 0 ? 'text-green-700 font-medium' : 'text-red-600 font-medium'}>
+            <div key={book.id} className="card p-4 flex flex-col">
+              <div className="flex items-start gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-fuchsia-400 text-white">
+                  <BookOpenIcon size={17} />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900 leading-tight">{book.title}</p>
+                  <p className="text-sm text-slate-500">
+                    {book.author} &middot; {book.category} &middot; {book.year}
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-3 text-sm">
+                <span className={book.availableCopies > 0 ? 'text-emerald-700 font-medium' : 'text-rose-600 font-medium'}>
                   {book.availableCopies} of {book.totalCopies}
                 </span>{' '}
-                available
+                <span className="text-slate-500">available</span>
               </p>
 
-              {book.myReservationStatus ? (
-                <p className="mt-3 text-xs rounded bg-indigo-50 text-indigo-700 px-2 py-1 inline-block">
-                  {book.myReservationStatus === 'READY' ? 'Ready for pickup' : 'You are on the waiting list'}
-                </p>
-              ) : book.availableCopies === 0 ? (
-                <button
-                  onClick={() => handleReserve(book)}
-                  className="mt-3 w-full rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500"
-                >
-                  Reserve
-                </button>
-              ) : null}
+              <div className="mt-3 flex-1 flex items-end">
+                {book.myReservationStatus ? (
+                  <p className="badge bg-brand-50 text-brand-700 w-full justify-center py-1.5">
+                    {book.myReservationStatus === 'READY' ? 'Ready for pickup' : 'You are on the waiting list'}
+                  </p>
+                ) : book.availableCopies === 0 ? (
+                  <button onClick={() => handleReserve(book)} className="btn-primary w-full">
+                    Reserve
+                  </button>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>

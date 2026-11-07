@@ -22,18 +22,18 @@ export default function BookForm({ initial, onSubmit, onCancel, submitLabel }) {
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <input required placeholder="ISBN" value={form.isbn} onChange={(e) => set('isbn', e.target.value)} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm" />
-      <input required placeholder="Title" value={form.title} onChange={(e) => set('title', e.target.value)} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm" />
-      <input required placeholder="Author" value={form.author} onChange={(e) => set('author', e.target.value)} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm" />
-      <input required placeholder="Publisher" value={form.publisher} onChange={(e) => set('publisher', e.target.value)} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm" />
-      <input required placeholder="Category" value={form.category} onChange={(e) => set('category', e.target.value)} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm" />
-      <input required type="number" placeholder="Year" value={form.year} onChange={(e) => set('year', e.target.value)} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm" />
+      <input required placeholder="ISBN" value={form.isbn} onChange={(e) => set('isbn', e.target.value)} className="input" />
+      <input required placeholder="Title" value={form.title} onChange={(e) => set('title', e.target.value)} className="input" />
+      <input required placeholder="Author" value={form.author} onChange={(e) => set('author', e.target.value)} className="input" />
+      <input required placeholder="Publisher" value={form.publisher} onChange={(e) => set('publisher', e.target.value)} className="input" />
+      <input required placeholder="Category" value={form.category} onChange={(e) => set('category', e.target.value)} className="input" />
+      <input required type="number" placeholder="Year" value={form.year} onChange={(e) => set('year', e.target.value)} className="input" />
       <div className="sm:col-span-2 flex gap-2">
-        <button disabled={submitting} className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
+        <button disabled={submitting} className="btn-primary">
           {submitting ? 'Saving...' : submitLabel}
         </button>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium hover:bg-gray-200">
+          <button type="button" onClick={onCancel} className="btn-secondary">
             Cancel
           </button>
         )}
